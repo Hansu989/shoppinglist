@@ -7,7 +7,8 @@ const URL = 'http://localhost/shoppinglist2/';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [task, setTask] = useState('');
+  const [task, setTask] = useState("");
+  const [amounts, setAmounts] = useState(0);
 
 
   function save(e) {
@@ -26,6 +27,22 @@ function App() {
     });
   }
 
+  function save(f) {
+    f.preventDefault();
+    const json2 = JSON.stringify({amount:amounts})
+    axios.post(URL + 'add.php',json2,{
+      headers: {
+        'Content-Type' : 'application/json'
+      }
+    })
+    .then((response) => {
+      setAmounts(amounts => [...amounts,response.data]);
+      setAmounts('');
+    }).catch (error => {
+      alert(error.response.data.error)
+    });
+  }
+
   function remove(id) {
     const json = JSON.stringify({id:id})
     axios.post(URL + 'delete.php',json,{
@@ -33,6 +50,7 @@ function App() {
         'Content-Type' : 'application/json'
       }
     })
+
 
     .then((response) => {
       const newListWithoutRemoved = task.filter((item) => item.id !== id);
@@ -43,15 +61,15 @@ function App() {
   }
 
 
-  useEffect(()=> {
+  useEffect(() => {
     axios.get(URL)
     .then((response) => {
-     console.log(response.data)
      setTasks(response.data)
     }).catch(error => {
       alert(error.response ? error.response.data.error : error);
     })
-  },[])
+  }, [])
+
 
 
   return(
@@ -60,7 +78,8 @@ function App() {
 <form onSubmit={save}>
   <label>New item</label>
   <input value={task} onChange={e => setTask(e.target.value)} />
-  <button>Save</button>
+  <input value={amounts} onChange={f => setAmounts(f.target.value)} />
+  <button>Add</button>
 
 <ol> {tasks?.map(task => (
 <li key={task.id}>
@@ -73,9 +92,9 @@ function App() {
 
 </ol>
 
- <ol>
+<ol>
    {tasks?.map(task => (
-     <li key={task.id}>{task.description}</li>
+     <li key={task.id}>{task.description}{amounts.amount}</li>
    ))}
  </ol>
  </form>
